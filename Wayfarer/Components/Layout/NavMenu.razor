@@ -1,0 +1,19 @@
+<button type="button"
+        class="btn btn-secondary md:hidden"
+        data-nav-toggle
+        aria-controls="site-nav"
+        aria-expanded="false">
+    <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 8h16M4 16h16" />
+    </svg>
+    Menu
+</button>
+
+<nav id="site-nav" class="site-nav w-full md:w-auto" aria-label="Primary" data-open="false">
+    <ul class="flex flex-col gap-1 rounded-3xl bg-white p-1.5 md:flex-row md:rounded-full">
+        <li><NavLink class="nav-link w-full md:w-auto" href="/" Match="NavLinkMatch.All">Home</NavLink></li>
+        <li><NavLink class="nav-link w-full md:w-auto" href="/explore">Explore</NavLink></li>
+        <li><NavLink class="nav-link w-full md:w-auto" href="/book">Book</NavLink></li>
+        <li><NavLink class="nav-link w-full md:w-auto" href="/trips">My trips</NavLink></li>
+    </ul>
+</nav>

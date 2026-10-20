@@ -1,0 +1,266 @@
+@page "/explore"
+@rendermode InteractiveServer
+
+<PageTitle>Explore trips | Wayfarer</PageTitle>
+
+@{
+    var results = Results;
+}
+
+<section class="container-page pt-6">
+    <header class="mb-8 max-w-3xl">
+        <h1 class="text-5xl sm:text-7xl">Find your next departure</h1>
+        <p class="mt-4 max-w-xl text-lg text-ink-soft">Search by place or name, narrow by region and kind, then open any trip for the plan and a live price.</p>
+    </header>
+
+    <div class="mb-6 grid gap-4 rounded-[2rem] bg-white p-4 sm:p-6 md:grid-cols-12">
+        <div class="md:col-span-5">
+            <label for="search" class="label">Search</label>
+            <input id="search" type="search" class="input" placeholder="Kyoto, kayak, wine..."
+                   @bind="search" @bind:event="oninput" />
+        </div>
+        <div class="md:col-span-4">
+            <label for="region" class="label">Region</label>
+            <select id="region" class="input" @bind="region">
+                <option value="All">All regions</option>
+                @foreach (var r in Enum.GetValues<Region>())
+                {
+                    <option value="@r">@r</option>
+                }
+            </select>
+        </div>
+        <div class="md:col-span-3">
+            <label for="sort" class="label">Sort by</label>
+            <select id="sort" class="input" @bind="sort">
+                <option value="featured">Featured</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+                <option value="seats">Fewest seats left</option>
+            </select>
+        </div>
+        <div class="md:col-span-12" role="group" aria-label="Filter by kind">
+            <div class="flex flex-wrap gap-2">
+                @foreach (var k in Kinds)
+                {
+                    <button type="button"
+                            class="btn @(kind == k ? "btn-pressed" : "btn-ghost")"
+                            aria-pressed="@(kind == k ? "true" : "false")"
+                            @onclick="() => kind = k">
+                        @(k == "All" ? "All trips" : k + "s")
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <p class="mb-4 px-2 font-semibold text-ink-soft" role="status" aria-live="polite">
+        @results.Count @(results.Count == 1 ? "trip matches" : "trips match")
+    </p>
+
+    @if (results.Count == 0)
+    {
+        <div class="rounded-[2rem] bg-white p-8 text-center sm:p-12">
+            <h2 class="text-3xl">Nothing matches those filters</h2>
+            <p class="mx-auto mt-3 max-w-md text-ink-soft">Try a broader search or clear the filters to see every departure.</p>
+            <button type="button" class="btn btn-primary mt-6" @onclick="ResetFilters">Clear filters</button>
+        </div>
+    }
+    else
+    {
+        <ul class="grid gap-5 md:grid-cols-2">
+            @foreach (var item in results)
+            {
+                <li>
+                    <article class="flex h-full flex-col rounded-[2rem] bg-white p-2.5">
+                        <div class="relative h-40 overflow-hidden rounded-[1.5rem] sm:h-48" aria-hidden="true">
+                            <Swatch Destination="item.Destination" />
+                        </div>
+                        <div class="flex flex-1 flex-col p-4 sm:p-5">
+                            <div class="mb-3 flex flex-wrap items-center gap-2">
+                                <span class="badge @(item.Kind == "Tour" ? "badge-iris" : "badge-sun")">@item.Kind</span>
+                                <span class="badge badge-plain">@item.DurationLabel</span>
+                                @if (item is TourPackage tour)
+                                {
+                                    <span class="badge badge-plain">@tour.Difficulty</span>
+                                }
+                                @if (item.IsSoldOut)
+                                {
+                                    <span class="badge badge-rose">Sold out</span>
+                                }
+                            </div>
+                            <h2 class="text-3xl">@item.Name</h2>
+                            <p class="mt-1 text-sm font-semibold text-ink-soft">@item.Destination.Display</p>
+                            <p class="mt-3 flex-1 text-ink-soft">@item.Summary</p>
+
+                            <div class="mt-5">
+                                <div class="mb-1.5 flex justify-between text-sm font-semibold">
+                                    <span>@(item.IsSoldOut ? "No seats left" : $"{item.SeatsLeft} of {item.Capacity} seats left")</span>
+                                    <span>@item.PercentFilled% full</span>
+                                </div>
+                                <div class="meter" role="progressbar" aria-label="Seats reserved"
+                                     aria-valuemin="0" aria-valuemax="@item.Capacity" aria-valuenow="@(item.Capacity - item.SeatsLeft)">
+                                    <span style="width:@(item.PercentFilled)%"></span>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex flex-wrap items-end justify-between gap-3">
+                                <p>
+                                    <span class="font-display text-4xl font-extrabold tracking-tight">@Fmt.Money(item.CalculatePrice(1))</span>
+                                    <span class="block text-xs text-ink-soft">@item.PriceNote</span>
+                                </p>
+                                <div class="flex gap-2">
+                                    <button type="button" class="btn btn-ghost" @onclick="() => Open(item)">Details</button>
+                                    @if (item.IsSoldOut)
+                                    {
+                                        <button type="button" class="btn btn-primary" disabled>Sold out</button>
+                                    }
+                                    else
+                                    {
+                                        <a href="/book?item=@item.Id" class="btn btn-primary">Book</a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@if (selected is not null)
+{
+    <div class="overlay" @onclick="Close">
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dlg-title" @onclick:stopPropagation="true">
+            <div class="relative mb-5 h-32 overflow-hidden rounded-[1.5rem]" aria-hidden="true">
+                <Swatch Destination="selected.Destination" />
+            </div>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-semibold text-ink-soft">@selected.Kind, @selected.DurationLabel</p>
+                    <h2 id="dlg-title" class="mt-1 text-4xl">@selected.Name</h2>
+                    <p class="mt-1 text-sm font-semibold text-ink-soft">@selected.Destination.Display</p>
+                </div>
+                <button type="button" class="btn btn-secondary px-3" data-modal-close aria-label="Close details" @onclick="Close">
+                    <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                </button>
+            </div>
+
+            <p class="mt-4 text-ink-soft">@selected.Destination.Description</p>
+
+            <h3 class="mt-6 text-xl">What's included</h3>
+            <ul class="mt-3 space-y-2">
+                @foreach (var h in selected.Highlights)
+                {
+                    <li class="flex gap-3">
+                        <span class="mt-1 grid size-5 shrink-0 place-items-center rounded-full bg-iris text-white" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6" /></svg>
+                        </span>
+                        <span>@h</span>
+                    </li>
+                }
+            </ul>
+
+            <div class="mt-6 rounded-[1.5rem] bg-white p-4 sm:p-5">
+                <p class="label">Price for your group</p>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2" role="group" aria-label="Number of travelers">
+                        <button type="button" class="btn btn-secondary px-4" aria-label="Fewer travelers"
+                                disabled="@(modalTravelers <= 1)" @onclick="() => modalTravelers--">&minus;</button>
+                        <output class="w-10 text-center font-display text-3xl font-extrabold" aria-live="polite">@modalTravelers</output>
+                        <button type="button" class="btn btn-secondary px-4" aria-label="More travelers"
+                                disabled="@(modalTravelers >= MaxModalTravelers)" @onclick="() => modalTravelers++">+</button>
+                    </div>
+                    <p class="font-display text-4xl font-extrabold tracking-tight">@Fmt.Money(selected.CalculatePrice(modalTravelers))</p>
+                </div>
+                @if (selected is TourPackage && modalTravelers >= TourPackage.GroupThreshold)
+                {
+                    <p class="hint">Group discount of @TourPackage.GroupDiscount.ToString("P0") applied.</p>
+                }
+            </div>
+
+            <div class="mt-6 flex flex-wrap justify-end gap-3">
+                <button type="button" class="btn btn-ghost" @onclick="Close">Close</button>
+                @if (selected.IsSoldOut)
+                {
+                    <button type="button" class="btn btn-primary" disabled>Sold out</button>
+                }
+                else
+                {
+                    <a href="/book?item=@selected.Id" class="btn btn-primary">Book this trip</a>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? InitialQuery { get; set; }
+
+    private static readonly string[] Kinds = { "All", "Tour", "Experience" };
+
+    private string search = string.Empty;
+    private string region = "All";
+    private string kind = "All";
+    private string sort = "featured";
+    private TravelItem? selected;
+    private int modalTravelers = 1;
+
+    private int MaxModalTravelers => selected is null ? 1 : Math.Max(1, Math.Min(12, selected.SeatsLeft));
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrWhiteSpace(InitialQuery))
+            search = InitialQuery.Trim();
+    }
+
+    private List<TravelItem> Results
+    {
+        get
+        {
+            IEnumerable<TravelItem> q = SampleData.Items;
+
+            if (kind != "All")
+                q = q.Where(i => i.Kind == kind);
+
+            if (region != "All")
+                q = q.Where(i => i.Destination.Region.ToString() == region);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                q = q.Where(i =>
+                    i.Name.Contains(s, StringComparison.OrdinalIgnoreCase) ||
+                    i.Destination.Display.Contains(s, StringComparison.OrdinalIgnoreCase) ||
+                    i.Summary.Contains(s, StringComparison.OrdinalIgnoreCase));
+            }
+
+            q = sort switch
+            {
+                "price-asc" => q.OrderBy(i => i.CalculatePrice(1)),
+                "price-desc" => q.OrderByDescending(i => i.CalculatePrice(1)),
+                "seats" => q.OrderBy(i => i.IsSoldOut).ThenBy(i => i.SeatsLeft),
+                _ => q.OrderBy(i => i.Id)
+            };
+
+            return q.ToList();
+        }
+    }
+
+    private void ResetFilters()
+    {
+        search = string.Empty;
+        region = "All";
+        kind = "All";
+        sort = "featured";
+    }
+
+    private void Open(TravelItem item)
+    {
+        selected = item;
+        modalTravelers = 1;
+    }
+
+    private void Close() => selected = null;
+}

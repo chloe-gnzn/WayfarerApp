@@ -1,0 +1,128 @@
+@page "/trips"
+@rendermode InteractiveServer
+
+<PageTitle>My trips | Wayfarer</PageTitle>
+
+@{
+    var visible = Visible;
+}
+
+<section class="container-page pt-6">
+    <header class="mb-8 max-w-3xl">
+        <h1 class="text-5xl sm:text-7xl">Your reservations</h1>
+        <p class="mt-4 max-w-xl text-lg text-ink-soft">Everything you've booked, with running totals. Cancelling releases your seats right away.</p>
+    </header>
+
+    <dl class="mb-8 grid gap-3 sm:grid-cols-3">
+        <div class="flex flex-col-reverse rounded-[2rem] bg-white p-6">
+            <dt class="text-sm text-ink-soft">Active bookings</dt>
+            <dd class="font-display text-5xl font-extrabold tracking-tight">@ConfirmedBookings.Count</dd>
+        </div>
+        <div class="flex flex-col-reverse rounded-[2rem] bg-white p-6">
+            <dt class="text-sm text-ink-soft">Travelers</dt>
+            <dd class="font-display text-5xl font-extrabold tracking-tight">@ConfirmedBookings.Sum(b => b.Travelers)</dd>
+        </div>
+        <div class="flex flex-col-reverse rounded-[2rem] bg-ink p-6 text-white">
+            <dt class="text-sm text-white/70">Total committed</dt>
+            <dd class="font-display text-5xl font-extrabold tracking-tight">@Fmt.Money(ConfirmedBookings.Sum(b => b.Total))</dd>
+        </div>
+    </dl>
+
+    <div class="mb-6 flex flex-wrap gap-2" role="group" aria-label="Filter bookings">
+        @foreach (var f in Filters)
+        {
+            <button type="button"
+                    class="btn @(filter == f ? "btn-pressed" : "btn-secondary")"
+                    aria-pressed="@(filter == f ? "true" : "false")"
+                    @onclick="() => SetFilter(f)">
+                @f
+            </button>
+        }
+    </div>
+
+    @if (visible.Count == 0)
+    {
+        <div class="rounded-[2rem] bg-white p-8 text-center sm:p-12">
+            <h2 class="text-3xl">@(filter == "All" ? "No trips yet" : $"No {filter.ToLower()} bookings")</h2>
+            <p class="mx-auto mt-3 max-w-md text-ink-soft">
+                @(filter == "All" ? "Your reservations will appear here once you book something." : "Switch filters to see your other bookings.")
+            </p>
+            <a href="/explore" class="btn btn-primary mt-6">Explore trips</a>
+        </div>
+    }
+    else
+    {
+        <ul class="grid gap-4">
+            @foreach (var b in visible)
+            {
+                var cancelled = b.Status == BookingStatus.Cancelled;
+                <li>
+                    <article class="grid overflow-hidden rounded-[2rem] bg-white sm:grid-cols-[9rem_1fr] @(cancelled ? "opacity-70" : "")">
+                        <div class="h-24 sm:h-auto @(cancelled ? "grayscale" : "")" aria-hidden="true"><Swatch Destination="b.Item.Destination" /></div>
+                        <div class="grid gap-4 p-5 sm:p-6 md:grid-cols-[1fr_auto] md:items-center">
+                            <div>
+                                <div class="mb-2 flex flex-wrap items-center gap-2">
+                                    <span class="badge @(cancelled ? "badge-rose" : "badge-moss")">@b.Status</span>
+                                    <span class="text-sm font-semibold text-ink-soft">@b.Reference</span>
+                                </div>
+                                <h2 class="text-3xl">@b.Item.Name</h2>
+                                <p class="text-sm font-semibold text-ink-soft">@b.Item.Destination.Display</p>
+                                <p class="mt-2 text-sm text-ink-soft">
+                                    @Fmt.Date(b.TravelDate), @b.Travelers @(b.Travelers == 1 ? "traveler" : "travelers"), @b.TravelerName
+                                </p>
+                                @if (!string.IsNullOrWhiteSpace(b.Notes))
+                                {
+                                    <p class="mt-1 text-sm italic text-ink-soft">"@b.Notes"</p>
+                                }
+                            </div>
+                            <div class="flex flex-col gap-3 md:items-end">
+                                <p class="font-display text-4xl font-extrabold tracking-tight @(cancelled ? "line-through" : "")">@Fmt.Money(b.Total)</p>
+                                @if (!cancelled)
+                                {
+                                    @if (confirmId == b.Id)
+                                    {
+                                        <div class="flex flex-wrap gap-2" role="group" aria-label="Confirm cancellation">
+                                            <button type="button" class="btn btn-primary" @onclick="() => Cancel(b)">Yes, cancel</button>
+                                            <button type="button" class="btn btn-ghost" @onclick="() => confirmId = null">Keep it</button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-ghost" @onclick="() => confirmId = b.Id">Cancel booking</button>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </article>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    private static readonly string[] Filters = { "All", "Confirmed", "Cancelled" };
+
+    private string filter = "All";
+    private int? confirmId;
+
+    private List<Booking> ConfirmedBookings =>
+        SampleData.Bookings.Where(b => b.Status == BookingStatus.Confirmed).ToList();
+
+    private List<Booking> Visible =>
+        SampleData.Bookings
+            .Where(b => filter == "All" || b.Status.ToString() == filter)
+            .ToList();
+
+    private void SetFilter(string value)
+    {
+        filter = value;
+        confirmId = null;
+    }
+
+    private void Cancel(Booking booking)
+    {
+        SampleData.Cancel(booking);
+        confirmId = null;
+    }
+}

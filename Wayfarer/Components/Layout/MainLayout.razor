@@ -1,0 +1,36 @@
+@inherits LayoutComponentBase
+
+<a href="#main" class="skip-link">Skip to content</a>
+
+<div class="flex min-h-dvh flex-col">
+    <header class="relative z-40">
+        <div class="container-page flex flex-wrap items-center justify-between gap-y-2 py-4">
+            <a href="/" class="flex min-h-11 items-center gap-2.5 no-underline" aria-label="Wayfarer home">
+                <svg viewBox="0 0 40 40" class="size-10" aria-hidden="true">
+                    <rect width="40" height="40" rx="13" class="fill-iris" />
+                    <path d="M10 32V20a10 10 0 0 1 20 0v12z" class="fill-white" />
+                    <path d="M16 32V21a4 4 0 0 1 8 0v11z" class="fill-sun" />
+                </svg>
+                <span class="font-display text-[1.65rem] font-extrabold tracking-tight text-ink">wayfarer</span>
+            </a>
+            <NavMenu />
+        </div>
+    </header>
+
+    <main id="main" class="flex-1">
+        @Body
+    </main>
+
+    <footer class="mt-16 bg-ink text-white">
+        <div class="container-page flex flex-col gap-6 py-10 sm:flex-row sm:items-end sm:justify-between">
+            <p class="font-display text-5xl font-extrabold tracking-tight sm:text-6xl">wayfarer</p>
+            <p class="max-w-xs text-sm text-white/70 sm:text-right">&copy; @DateTime.Now.Year Wayfarer Travel Co.<br />Small groups, slow routes.</p>
+        </div>
+    </footer>
+</div>
+
+<div id="blazor-error-ui">
+    An unexpected error has occurred.
+    <a href="" class="reload font-bold underline">Reload</a>
+    <span class="dismiss" aria-label="Dismiss">&#10005;</span>
+</div>
