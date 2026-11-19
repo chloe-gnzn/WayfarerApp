@@ -1,0 +1,272 @@
+@import "tailwindcss";
+
+/* Self-hosted variable fonts (no internet needed at runtime) */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("../fonts/bricolage-grotesque-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../fonts/instrument-sans-latin-wght-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@theme {
+  --color-fog: #edf0f7;
+  --color-ink: #17163a;
+  --color-ink-soft: #52527a;
+  --color-iris: #3d36f0;
+  --color-iris-dark: #2a23c7;
+  --color-sun: #ffd84a;
+  --color-rose: #b4234f;
+  --color-rose-soft: #fde8ee;
+  --color-moss: #0b7a5a;
+  --color-moss-soft: #ddf5ec;
+
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    background: var(--color-fog);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: clip;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: var(--color-ink);
+    background-color: var(--color-fog);
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+  }
+
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.045em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-iris);
+    outline-offset: 3px;
+    border-radius: 0.5rem;
+  }
+
+  #blazor-error-ui {
+    display: none;
+    position: fixed;
+    inset: auto 1rem 1rem 1rem;
+    z-index: 100;
+    padding: 0.85rem 1.25rem;
+    border-radius: 1.25rem;
+    background: var(--color-sun);
+    color: var(--color-ink);
+    box-shadow: 0 10px 30px rgb(23 22 58 / 0.25);
+  }
+
+  #blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 1rem;
+    top: 0.75rem;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .skip-link {
+    @apply absolute left-2 top-2 z-50 -translate-y-20 rounded-full bg-sun px-5 py-2 font-semibold focus:translate-y-0;
+  }
+
+  /* Buttons: pills, sentence case */
+  .btn {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full px-6 py-2 text-[0.95rem] font-semibold no-underline transition-colors duration-150;
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    @apply cursor-not-allowed opacity-45;
+  }
+  .btn-primary {
+    @apply bg-iris text-white;
+  }
+  .btn-primary:not(:disabled):hover {
+    @apply bg-iris-dark;
+  }
+  .btn-secondary {
+    @apply bg-white text-ink ring-2 ring-inset ring-ink;
+  }
+  .btn-secondary:not(:disabled):hover {
+    @apply bg-ink text-white;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-ink;
+  }
+  .btn-ghost:not(:disabled):hover {
+    @apply bg-ink/10;
+  }
+  .btn-pressed {
+    @apply bg-ink text-white;
+  }
+
+  /* Surfaces */
+  .card {
+    @apply rounded-[2rem] bg-white;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  .badge-iris { @apply bg-iris text-white; }
+  .badge-moss { @apply bg-moss-soft text-moss; }
+  .badge-rose { @apply bg-rose-soft text-rose; }
+  .badge-sun { @apply bg-sun text-ink; }
+  .badge-plain { @apply bg-ink/10 text-ink; }
+
+  /* Link with a bar under it */
+  .link-bar {
+    @apply inline-flex min-h-11 items-center gap-1 font-semibold text-ink no-underline;
+    background: linear-gradient(var(--color-iris), var(--color-iris)) 0 calc(100% - 0.6rem) / 100% 3px no-repeat;
+    transition: background-size 0.2s ease;
+  }
+  .link-bar:hover {
+    background-size: 100% 100%;
+    color: #fff;
+  }
+
+  /* Forms */
+  .label {
+    @apply mb-1.5 block text-sm font-semibold;
+  }
+  .input {
+    @apply min-h-12 w-full rounded-2xl border-2 border-transparent bg-fog px-4 py-2 text-base text-ink transition-colors;
+  }
+  .input:hover {
+    @apply border-ink/20;
+  }
+  .input:focus {
+    @apply border-iris bg-white outline-none;
+  }
+  .input.invalid {
+    @apply border-rose bg-rose-soft;
+  }
+  .input.valid.modified {
+    @apply border-moss;
+  }
+  .validation-message {
+    @apply mt-1.5 text-sm font-semibold text-rose;
+  }
+  .validation-errors {
+    @apply text-sm font-semibold text-rose;
+  }
+  .hint {
+    @apply mt-1.5 text-sm text-ink-soft;
+  }
+
+  /* Navigation: one segmented pill */
+  .nav-link {
+    @apply inline-flex min-h-10 items-center rounded-full px-4 text-[0.95rem] font-semibold text-ink no-underline transition-colors;
+  }
+  .nav-link:hover {
+    @apply bg-ink/10;
+  }
+  .nav-link.active {
+    @apply bg-ink text-white;
+  }
+  .site-nav {
+    display: none;
+  }
+  .site-nav[data-open="true"] {
+    display: block;
+  }
+  @media (min-width: 48rem) {
+    .site-nav {
+      display: block;
+    }
+  }
+
+  /* Destination art */
+  .swatch {
+    @apply block h-full w-full;
+  }
+  .tile {
+    @apply relative flex flex-col overflow-hidden no-underline transition-transform duration-200;
+    background-color: var(--tint);
+    color: var(--deep);
+  }
+  .tile:hover {
+    transform: translateY(-4px);
+  }
+  .tile-chip {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold;
+    background: color-mix(in srgb, var(--deep) 14%, transparent);
+  }
+
+  .meter {
+    @apply h-2 w-full overflow-hidden rounded-full bg-ink/10;
+  }
+  .meter > span {
+    @apply block h-full rounded-full bg-iris;
+  }
+
+  /* Modal */
+  .overlay {
+    @apply fixed inset-0 z-50 grid place-items-end bg-ink/60 sm:place-items-center sm:p-6;
+  }
+  .sheet {
+    @apply max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-t-[2rem] bg-fog p-5 sm:rounded-[2rem] sm:p-7;
+    animation: sheet-in 0.22s ease-out both;
+  }
+
+  .spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: spin 0.7s linear infinite;
+  }
+
+  /* The one orchestrated moment: hero tiles arrive in turn */
+  .arrive {
+    animation: arrive 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 110ms);
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes sheet-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

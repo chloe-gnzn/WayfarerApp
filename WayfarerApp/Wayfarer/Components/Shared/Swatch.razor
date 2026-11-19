@@ -1,0 +1,61 @@
+@* Original geometric art for each destination. Fills its parent; crops instead of stretching. *@
+<svg viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice" class="swatch" aria-hidden="true" focusable="false">
+    <rect width="240" height="160" fill="@Destination.Accent" />
+    @switch (Destination.Id)
+    {
+        case 1: @* Kyoto: low sun behind three pillars *@
+            <circle cx="158" cy="74" r="46" fill="@Destination.Deep" />
+            <rect x="34" y="58" width="18" height="120" rx="9" fill="white" fill-opacity="0.75" />
+            <rect x="68" y="30" width="18" height="150" rx="9" fill="white" fill-opacity="0.75" />
+            <rect x="102" y="82" width="18" height="100" rx="9" fill="white" fill-opacity="0.75" />
+            break;
+        case 2: @* Lisbon: azulejo tiles, quarter circles turning *@
+            for (var r = 0; r < 4; r++)
+            {
+                for (var c = 0; c < 6; c++)
+                {
+                    var turn = ((r * 2 + c * 3) % 4) * 90;
+                    <path d="M0 0H40A40 40 0 0 1 0 40Z"
+                          transform="translate(@(c * 40) @(r * 40)) rotate(@turn 20 20)"
+                          fill="@((r + c) % 2 == 0 ? Destination.Deep : "white")"
+                          fill-opacity="@((r + c) % 2 == 0 ? "1" : "0.6")" />
+                }
+            }
+            break;
+        case 3: @* Cusco: stone terraces under a high sun *@
+            <circle cx="196" cy="38" r="20" fill="@Destination.Deep" />
+            <rect x="90" y="46" width="60" height="30" rx="4" fill="@Destination.Deep" fill-opacity="0.55" />
+            <rect x="60" y="72" width="120" height="30" rx="4" fill="@Destination.Deep" fill-opacity="0.7" />
+            <rect x="30" y="98" width="180" height="30" rx="4" fill="@Destination.Deep" fill-opacity="0.85" />
+            <rect x="0" y="124" width="240" height="40" fill="@Destination.Deep" />
+            break;
+        case 4: @* Marrakech: three arches of different heights *@
+            <path d="M24 160V92A32 32 0 0 1 88 92V160Z" fill="@Destination.Deep" />
+            <path d="M104 160V56A32 32 0 0 1 168 56V160Z" fill="@Destination.Deep" />
+            <path d="M184 160V100A32 32 0 0 1 248 100V160Z" fill="@Destination.Deep" />
+            <path d="M40 160V94A16 16 0 0 1 72 94V160Z" fill="white" fill-opacity="0.55" />
+            <path d="M120 160V58A16 16 0 0 1 152 58V160Z" fill="white" fill-opacity="0.55" />
+            <path d="M200 160V102A16 16 0 0 1 232 102V160Z" fill="white" fill-opacity="0.55" />
+            break;
+        case 5: @* Queenstown: ridgeline over a lake *@
+            <circle cx="196" cy="34" r="14" fill="white" fill-opacity="0.85" />
+            <polygon points="0,130 62,46 104,102 152,26 214,118 240,92 240,130" fill="@Destination.Deep" />
+            <polygon points="0,130 40,96 86,130" fill="white" fill-opacity="0.4" />
+            <rect x="0" y="130" width="240" height="30" fill="@Destination.Deep" fill-opacity="0.35" />
+            <rect x="28" y="142" width="70" height="4" rx="2" fill="white" fill-opacity="0.6" />
+            <rect x="130" y="150" width="60" height="4" rx="2" fill="white" fill-opacity="0.6" />
+            break;
+        default: @* Reykjavik: aurora arcs rising off the horizon *@
+            <circle cx="120" cy="176" r="158" fill="@Destination.Deep" />
+            <circle cx="120" cy="176" r="128" fill="@Destination.Accent" />
+            <circle cx="120" cy="176" r="98" fill="@Destination.Deep" />
+            <circle cx="120" cy="176" r="68" fill="@Destination.Accent" />
+            <circle cx="120" cy="176" r="38" fill="@Destination.Deep" />
+            break;
+    }
+</svg>
+
+@code {
+    [Parameter, EditorRequired]
+    public Destination Destination { get; set; } = default!;
+}
